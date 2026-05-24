@@ -1,0 +1,40 @@
+cd /home/ubuntu/code/project
+
+git checkout -b main
+git checkout -b feature-branch
+
+echo "Feature: Initial version of feature.txt" > feature.txt
+git add feature.txt
+git commit -m "FeatureCommit"
+
+git checkout main
+
+echo "Feature: Main branch version" > feature.txt
+git add feature.txt
+git commit -m "MainBranchCommit"
+
+git checkout feature-branch
+
+echo "Feature: Modified version from feature-branch" > feature.txt
+git add feature.txt
+git commit -m "FeatureBranchChange"
+
+git checkout main
+
+echo "Feature: Conflicting version from main branch" > feature.txt
+git add feature.txt
+git commit -m "MainBranchChange"
+
+git merge feature-branch
+
+Now resolve conflict:
+
+cat > feature.txt <<EOF
+Feature: Modified version from feature-branch
+Feature: Conflicting version from main branch
+EOF
+
+Then:
+
+git add feature.txt
+git commit -m "MergeConflictResolved"
