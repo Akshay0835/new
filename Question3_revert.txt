@@ -1,0 +1,33 @@
+git init
+git checkout -b main
+
+echo "Project README" > README.md
+git add README.md
+git commit -m "Initial commit"
+
+git checkout -b release-cleanup
+
+echo "Added documentation" >> README.md
+git add README.md
+git commit -m "Add project docs"
+
+echo "Temporary configs" > config.txt
+git add config.txt
+git commit -m "Add temporary configuration"
+
+echo "Updated examples" >> README.md
+git add README.md
+git commit -m "Improve documentation examples"
+
+git reset --soft HEAD~3
+git reset
+
+git add README.md
+git commit -m "Documentation updates"
+
+git add config.txt
+git commit -m "Add temporary configuration"
+
+git revert --no-edit HEAD
+
+git log --oneline

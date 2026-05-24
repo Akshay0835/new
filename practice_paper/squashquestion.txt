@@ -1,0 +1,95 @@
+Run these commands in Ubuntu Linux terminal.
+
+1. Go to repository
+cd /path/to/repository
+2. Create and switch branch
+git checkout -b release-cleanup main
+3. Commit 1
+
+Append text to README.md
+
+echo "Added documentation" >> README.md
+
+Commit it:
+
+git add README.md
+git commit -m "Add project docs"
+4. Commit 2
+
+Create config.txt
+
+echo "Temporary configs" > config.txt
+
+Commit:
+
+git add config.txt
+git commit -m "Add temporary configuration"
+5. Commit 3
+
+Append again to README.md
+
+echo "Updated examples" >> README.md
+
+Commit:
+
+git add README.md
+git commit -m "Improve documentation examples"
+6. Squash Commit 1 and Commit 3
+
+Start interactive rebase:
+
+git rebase -i --root
+
+Editor opens.
+
+Change this:
+
+pick commit1 Add project docs
+pick commit2 Add temporary configuration
+pick commit3 Improve documentation examples
+
+to:
+
+pick commit1 Add project docs
+pick commit2 Add temporary configuration
+squash commit3 Improve documentation examples
+
+Save and exit.
+
+Then change commit message to:
+
+Documentation updates
+
+Save and exit again.
+
+7. Revert temporary configuration commit
+
+Check commit hashes:
+
+git log --oneline
+
+Find hash of:
+
+Add temporary configuration
+
+Revert it:
+
+git revert <commit_hash>
+
+Example:
+
+git revert a1b2c3d
+
+Keep default revert message:
+
+Revert "Add temporary configuration"
+
+Save and exit.
+
+8. Verify final history
+git log --oneline
+
+Final history should show:
+
+Documentation updates
+Revert "Add temporary configuration"
