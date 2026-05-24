@@ -1,0 +1,121 @@
+Husky Setup for a Node.js Project
+1. Initialize Git Repository
+git init
+
+2. Initialize Node Project
+npm init -y
+
+3. Install Husky
+npm install --save-dev husky
+
+4. Enable Husky
+npx husky init
+
+This command:
+
+Creates .husky/ folder
+Adds a sample pre-commit hook
+Updates package.json
+
+5. Check Generated Structure
+ls -la .husky
+
+You should see:
+
+.husky/
+ ├── _
+ └── pre-commit
+Common Husky Hooks
+A. Pre-Commit Hook
+
+Runs before every commit.
+
+Create Hook
+echo "npm test" > .husky/pre-commit
+chmod +x .husky/pre-commit
+
+OR
+
+npx husky add .husky/pre-commit "npm test"
+Example
+#!/bin/sh
+npm test
+B. Commit Message Hook
+
+Checks commit messages.
+
+Create Hook
+touch .husky/commit-msg
+chmod +x .husky/commit-msg
+Add Content
+#!/bin/sh
+
+commit_msg=$(cat "$1")
+
+pattern="^(feat|fix|docs|style|refactor|test|chore): .+"
+
+if ! echo "$commit_msg" | grep -Eq "$pattern"; then
+  echo "Invalid commit message!"
+  echo "Example: feat: add login API"
+  exit 1
+fi
+C. Pre-Push Hook
+
+Runs before push.
+
+Create Hook
+touch .husky/pre-push
+chmod +x .husky/pre-push
+Add Content
+#!/bin/sh
+
+npm test
+npm run lint
+Example Complete Setup
+Install ESLint
+npm install --save-dev eslint
+Initialize ESLint
+npx eslint --init
+Add Lint Script in package.json
+"scripts": {
+  "lint": "eslint .",
+  "test": "echo \"Tests Passed\""
+}
+Configure Pre-Commit Hook
+echo '#!/bin/sh
+npm run lint
+npm test' > .husky/pre-commit
+
+chmod +x .husky/pre-commit
+Test Husky
+Make a Commit
+git add .
+git commit -m "feat: initial setup"
+
+If lint/tests fail:
+
+Commit will be blocked
+Skip Husky Hooks (Emergency)
+git commit -m "temp commit" --no-verify
+Remove Husky
+npm uninstall husky
+rm -rf .husky
+Useful Commands Summary
+Task	Command
+Install Husky	npm install --save-dev husky
+Initialize Husky	npx husky init
+Add Hook	npx husky add .husky/pre-commit "npm test"
+Run Hook Manually	.husky/pre-commit
+Skip Hooks	git commit --no-verify
+Typical CI/CD Flow with Husky
+Developer Commit
+       ↓
+Husky pre-commit hook
+       ↓
+Lint + Tests
+       ↓
+Commit Allowed / Blocked
+       ↓
+Push to GitHub
+       ↓
+GitHub Actions CI/CD

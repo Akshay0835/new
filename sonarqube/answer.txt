@@ -1,0 +1,249 @@
+Install SonarQube (Ubuntu)
+1. Update packages
+sudo apt update -y
+sudo apt upgrade -y
+
+2. Install Java (Required)
+sudo apt install openjdk-17-jdk -y
+
+Check Java:
+
+java -version
+
+3. Install PostgreSQL
+sudo apt install postgresql postgresql-contrib -y
+
+Start PostgreSQL:
+
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
+
+4. Create SonarQube Database
+sudo -u postgres psql
+
+Inside PostgreSQL:
+
+CREATE USER sonar WITH ENCRYPTED PASSWORD 'sonar';
+CREATE DATABASE sonarqube OWNER sonar;
+GRANT ALL PRIVILEGES ON DATABASE sonarqube TO sonar;
+\q
+
+5. Download SonarQube
+cd /opt
+
+sudo wget https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-10.6.0.92116.zip
+
+Extract:
+
+sudo apt install unzip -y
+sudo unzip sonarqube-10.6.0.92116.zip
+
+Rename:
+
+sudo mv sonarqube-10.6.0.92116 sonarqube
+
+6. Create SonarQube User
+sudo useradd -M -d /opt/sonarqube -r -s /bin/bash sonar
+sudo chown -R sonar:sonar /opt/sonarqube
+
+7. Configure Database
+
+Edit config:
+
+sudo nano /opt/sonarqube/conf/sonar.properties
+
+Add:
+
+sonar.jdbc.username=sonar
+sonar.jdbc.password=sonar
+sonar.jdbc.url=jdbc:postgresql://localhost:5432/sonarqube
+8. Configure Linux Kernel
+sudo nano /etc/sysctl.conf
+
+Add:
+
+vm.max_map_count=262144
+fs.file-max=65536
+
+Apply:
+
+sudo sysctl -p
+
+Edit limits:
+
+sudo nano /etc/security/limits.conf
+
+Add:
+
+sonar   -   nofile   65536
+sonar   -   nproc    4096
+
+9. Start SonarQube
+
+cd /opt/sonarqube/bin/linux-x86-64
+sudo -u sonar ./sonar.sh start
+
+Check status:
+
+sudo -u sonar ./sonar.sh status
+
+10. Access SonarQube
+
+Open:
+
+http://<YOUR_SERVER_IP>:9000
+
+Default login:
+
+Username: admin
+Password: admin
+Install Sonar Scanner for Node.js
+
+Inside Node project:
+
+npm install -D @sonar/scan
+
+or globally:
+
+npm install -g @sonar/scan
+
+Node.js 18+ is recommended for the latest scanner.
+
+Create SonarQube Project
+Login to SonarQube
+Create new project
+Generate token
+Copy:
+Project Key
+Token
+Add sonar-project.properties
+
+Create file:
+
+nano sonar-project.properties
+
+Add:
+
+sonar.projectKey=node-app
+sonar.projectName=node-app
+sonar.projectVersion=1.0
+
+sonar.sources=src
+sonar.tests=test
+
+sonar.sourceEncoding=UTF-8
+
+sonar.host.url=http://localhost:9000
+sonar.token=YOUR_TOKEN
+Run SonarQube Scan
+Method 1: Using npx
+npx @sonar/scan
+Method 2: Using sonar command
+sonar \
+-Dsonar.projectKey=node-app \
+-Dsonar.sources=src \
+-Dsonar.host.url=http://localhost:9000 \
+-Dsonar.token=YOUR_TOKEN
+
+SonarScanner supports both command-line and npm-based execution.
+
+Example Node.js Project Structure
+node-app/
+│── src/
+│── test/
+│── package.json
+│── sonar-project.properties
+Run with Coverage Report
+
+Install Jest:
+
+npm install --save-dev jest
+
+Add in package.json:
+
+"scripts": {
+  "test": "jest --coverage"
+}
+
+Run tests:
+
+npm test
+
+Update sonar-project.properties:
+
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+Run scan again:
+
+npx @sonar/scan
+SonarQube in GitHub Actions CI/CD
+
+Create:
+
+mkdir -p .github/workflows
+nano .github/workflows/sonarqube.yml
+
+Add:
+
+name: SonarQube Scan
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sonar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Tests
+        run: npm test -- --coverage
+
+      - name: SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          npx @sonar/scan \
+          -Dsonar.projectKey=node-app \
+          -Dsonar.host.url=http://YOUR_IP:9000 \
+          -Dsonar.token=$SONAR_TOKEN
+Start/Stop Commands
+
+Start:
+
+sudo -u sonar /opt/sonarqube/bin/linux-x86-64/sonar.sh start
+
+Stop:
+
+sudo -u sonar /opt/sonarqube/bin/linux-x86-64/sonar.sh stop
+
+Restart:
+
+sudo -u sonar /opt/sonarqube/bin/linux-x86-64/sonar.sh restart
+Useful Commands
+
+Check logs:
+
+tail -f /opt/sonarqube/logs/sonar.log
+
+Check port:
+
+sudo ss -tunlp | grep 9000
+
+Firewall:
+
+sudo ufw allow 9000
+
+SonarQube performs static analysis to detect bugs, vulnerabilities, and code smells in Node.js applications and integrates well with CI/CD workflows.

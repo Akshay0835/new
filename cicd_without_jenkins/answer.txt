@@ -1,0 +1,165 @@
+CI/CD Pipeline for Node.js using GitHub Actions (main.yml)
+
+This uses a YAML workflow file instead of Jenkins.
+
+Step 1: Create Node.js App
+
+Create Project
+mkdir node-app
+cd node-app
+Initialize Node Project
+npm init -y
+Install Express
+npm install express
+Create app.js
+nano app.js
+
+Paste:
+
+const express = require('express');
+
+const app = express();
+
+app.get('/', (req, res) => {
+    res.send('GitHub Actions CI/CD Running');
+});
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000');
+});
+
+Save file.
+
+Step 2: Edit package.json
+nano package.json
+
+Modify scripts:
+
+"scripts": {
+  "test": "echo \"Tests Passed\"",
+  "start": "node app.js"
+}
+Step 3: Test Application
+npm start
+
+Stop:
+
+CTRL + C
+Step 4: Initialize Git
+git init
+Add Files
+git add .
+Commit Files
+git commit -m "Initial commit"
+Step 5: Create GitHub Actions Workflow
+
+Create directories:
+
+mkdir -p .github/workflows
+Create main.yml
+nano .github/workflows/main.yml
+
+Paste:
+
+name: Node.js CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install Dependencies
+      run: npm install
+
+    - name: Run Tests
+      run: npm test
+
+    - name: Start Application
+      run: |
+        nohup node app.js &
+
+Save file.
+
+Step 6: Create GitHub Repository
+
+Create repository on GitHub
+
+Example:
+
+node-app
+Step 7: Connect Remote Repository
+git remote add origin https://github.com/username/node-app.git
+Rename Branch
+git branch -M main
+Push Code
+git push -u origin main
+Step 8: Verify CI/CD Pipeline
+
+Go to:
+
+GitHub Repository
+→ Actions Tab
+
+You will see workflow:
+
+Node.js CI/CD
+
+Pipeline automatically runs after push.
+
+Expected Workflow Steps
+Checkout Code
+↓
+Setup Node.js
+↓
+Install Dependencies
+↓
+Run Tests
+↓
+Deploy / Start App
+Complete Project Structure
+node-app/
+│
+├── app.js
+├── package.json
+│
+└── .github/
+    └── workflows/
+        └── main.yml
+Final Commands Summary
+mkdir node-app
+cd node-app
+
+npm init -y
+npm install express
+
+git init
+
+mkdir -p .github/workflows
+
+git add .
+git commit -m "Initial Commit"
+
+git remote add origin https://github.com/username/node-app.git
+
+git branch -M main
+
+git push -u origin main

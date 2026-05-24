@@ -1,0 +1,283 @@
+CI/CD Pipeline for Node.js Application using Jenkins
+Step 1: Create Project Directory
+mkdir -p /home/ubuntu/workspace/node-app
+cd /home/ubuntu/workspace/node-app
+Step 2: Create Node.js Application
+Initialize Node Project
+npm init -y
+Install Express
+npm install express
+Step 3: Create Application File
+Create app.js
+nano app.js
+
+Paste:
+
+const express = require('express');
+const app = express();
+
+app.get('/', (req, res) => {
+    res.send('CI/CD Pipeline Working!');
+});
+
+app.listen(3000, () => {
+    console.log('Server running on port 3000');
+});
+
+Save:
+
+CTRL + O
+ENTER
+CTRL + X
+Step 4: Modify package.json
+nano package.json
+
+Replace scripts section with:
+
+"scripts": {
+  "test": "echo \"Tests Passed\"",
+  "start": "node app.js"
+}
+
+Example complete file:
+
+{
+  "name": "node-app",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Tests Passed\"",
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
+Step 5: Test Application
+node app.js
+
+Output:
+
+Server running on port 3000
+
+Open browser:
+
+http://<public-ip>:3000
+
+Stop server:
+
+CTRL + C
+Step 6: Initialize Git Repository
+git init
+Configure Git Username & Email
+git config --global user.name "YourName"
+git config --global user.email "youremail@example.com"
+Add Files
+git add .
+Commit Files
+git commit -m "Initial Node App Commit"
+Connect GitHub Repository
+git remote add origin https://github.com/username/node-app.git
+Push Code
+git branch -M main
+git push -u origin main
+Step 7: Install Java
+sudo apt update
+sudo apt install openjdk-17-jdk -y
+
+Check Java:
+
+java -version
+Step 8: Install Jenkins
+Add Jenkins Key
+curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee \
+  /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+Add Jenkins Repository
+echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
+  https://pkg.jenkins.io/debian-stable binary/ | sudo tee \
+  /etc/apt/sources.list.d/jenkins.list > /dev/null
+Install Jenkins
+sudo apt update
+sudo apt install jenkins -y
+Start Jenkins
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+Check status:
+
+sudo systemctl status jenkins
+Step 9: Install Node.js
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install nodejs -y
+
+Check:
+
+node -v
+npm -v
+Step 10: Unlock Jenkins
+
+Get password:
+
+sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+
+Open:
+
+http://<public-ip>:8080
+
+Paste password.
+
+Step 11: Install Jenkins Plugins
+
+Install:
+
+Git Plugin
+Pipeline Plugin
+NodeJS Plugin
+Step 12: Configure NodeJS in Jenkins
+
+Go to:
+
+Manage Jenkins
+→ Tools
+→ NodeJS Installations
+
+Add:
+
+Name: NodeJS
+Install automatically
+
+Save.
+
+Step 13: Create Jenkinsfile
+nano Jenkinsfile
+
+Paste:
+
+pipeline {
+    agent any
+
+    tools {
+        nodejs "NodeJS"
+    }
+
+    stages {
+
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/username/node-app.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'echo Build Successful'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                pkill node || true
+                nohup node app.js > app.log 2>&1 &
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline Success'
+        }
+
+        failure {
+            echo 'Pipeline Failed'
+        }
+    }
+}
+
+Save file.
+
+Step 14: Push Jenkinsfile
+git add Jenkinsfile
+git commit -m "Added Jenkins Pipeline"
+git push origin main
+Step 15: Create Jenkins Pipeline Job
+
+Open Jenkins Dashboard.
+
+Create Job
+New Item
+→ Enter Name
+→ Pipeline
+→ OK
+Configure Pipeline
+
+Under Pipeline:
+
+Definition:
+Pipeline script from SCM
+
+SCM:
+
+Git
+
+Repository URL:
+
+https://github.com/username/node-app.git
+
+Branch:
+
+*/main
+
+Save.
+
+Step 16: Build Pipeline
+
+Click:
+
+Build Now
+Step 17: Verify Deployment
+
+Check process:
+
+ps -ef | grep node
+
+Check logs:
+
+cat app.log
+
+Open browser:
+
+http://<public-ip>:3000
+
+Output:
+
+CI/CD Pipeline Working!
+Complete CI/CD Flow
+Developer Pushes Code
+        ↓
+GitHub Repository
+        ↓
+Jenkins Detects Changes
+        ↓
+Clone Repository
+        ↓
+Install Dependencies
+        ↓
+Run Tests
+        ↓
+Build Application
+        ↓
+Deploy Application

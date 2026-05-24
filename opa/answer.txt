@@ -1,0 +1,149 @@
+OPA (Open Policy Agent) Setup for a Node.js Application
+
+This example shows how to integrate Open Policy Agent with a Node.js app.
+
+1. Create Project
+mkdir opa-node-app
+cd opa-node-app
+
+2. Initialize Node Application
+npm init -y
+
+3. Install Required Packages
+npm install express axios body-parser
+
+4. Create Application File
+touch app.js
+
+5. Add Node.js Code
+app.js
+const express = require("express");
+const axios = require("axios");
+const bodyParser = require("body-parser");
+
+const app = express();
+
+app.use(bodyParser.json());
+
+const OPA_URL = "http://localhost:8181/v1/data/httpapi/authz";
+
+app.get("/employees", async (req, res) => {
+
+    const input = {
+        input: {
+            method: req.method,
+            path: req.path,
+            user: req.headers.user || "guest"
+        }
+    };
+
+    try {
+
+        const response = await axios.post(OPA_URL, input);
+
+        if (response.data.result.allow === true) {
+            res.json({
+                message: "Access Granted"
+            });
+        } else {
+            res.status(403).json({
+                message: "Access Denied"
+            });
+        }
+
+    } catch (err) {
+        res.status(500).json({
+            error: err.message
+        });
+    }
+
+});
+
+app.listen(3000, () => {
+    console.log("Node app running on port 3000");
+});
+6. Create OPA Policy File
+mkdir policy
+touch policy/authz.rego
+7. Add Rego Policy
+policy/authz.rego
+package httpapi.authz
+
+default allow = false
+
+allow {
+    input.user == "admin"
+}
+
+allow {
+    input.user == "manager"
+    input.method == "GET"
+}
+8. Install OPA
+Linux
+curl -L -o opa https://openpolicyagent.org/downloads/latest/opa_linux_amd64_static
+
+chmod +x opa
+
+sudo mv opa /usr/local/bin/
+9. Verify OPA Installation
+opa version
+10. Start OPA Server
+opa run --server policy/authz.rego
+
+OPA runs on:
+
+http://localhost:8181
+11. Start Node Application
+
+Open another terminal:
+
+node app.js
+
+12. Test APIs
+Access as Admin
+curl -H "user: admin" http://localhost:3000/employees
+
+Output:
+
+{"message":"Access Granted"}
+Access as Manager
+curl -H "user: manager" http://localhost:3000/employees
+
+Output:
+
+{"message":"Access Granted"}
+Access as Guest
+curl -H "user: guest" http://localhost:3000/employees
+
+Output:
+
+{"message":"Access Denied"}
+13. Run OPA Decision Check Directly
+curl -X POST localhost:8181/v1/data/httpapi/authz \
+-H "Content-Type: application/json" \
+-d '{
+  "input": {
+    "user": "admin",
+    "method": "GET"
+  }
+}'
+
+14. Project Structure
+opa-node-app/
+│
+├── app.js
+├── package.json
+│
+└── policy/
+    └── authz.rego
+
+15. Useful OPA Commands
+Check Policy Syntax
+opa check policy/authz.rego
+Format Policy
+opa fmt -w policy/authz.rego
+Run Policy Test
+opa test policy/
+Start OPA with Logs
+opa run --server --log-level debug policy/authz.rego
